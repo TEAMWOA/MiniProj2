@@ -89,8 +89,8 @@ def process_ad(raw_ad):
 
 def main():
 
-    input_directory = "XML/{}"
-    output_directory = "Output/{}"
+    input_directory = "XMLFiles/{}"
+    output_directory = "TextFiles/{}"
 
     parsed_ads = 0  # Initialize count for number of parsed ads
     start_time = datetime.now()  # Start timer for recording runtime

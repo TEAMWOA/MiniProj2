@@ -9,17 +9,20 @@
 # 
 
 from bsddb3 import db
-from Output import *
 
 
 def main():
+
+    input_directory = "TextFiles/{}"
+    output_directory = "IndexFiles/{}"
+
     #######################################################
     # (4) Create a B+ Tree Index on prices.txt pdates.txt
     # {price as key and ad id, category and location as data}
-    prices = open('prices.txt', 'r')
+    prices = open(input_directory.format('prices.txt'), 'r')
     database = db.DB()
     database.set_flags(db.DB_DUP)
-    database.open('pr.idx', None, db.DB_BTREE, db.DB_CREATE)
+    database.open(output_directory.format('pr.idx'), None, db.DB_BTREE, db.DB_CREATE)
     curs = database.cursor()
 
     for line in prices:
@@ -32,10 +35,10 @@ def main():
     #######################################################
     # (3) Create a B+ Tree Index on pdates.txt
     # {date as key and ad id, category and location as data}
-    dates = open('pdates.txt', 'r')
+    dates = open(input_directory.format('pdates.txt'), 'r')
     database = db.DB()
     database.set_flags(db.DB_DUP)
-    database.open('da.idx', None, db.DB_BTREE, db.DB_CREATE)
+    database.open(output_directory.format('da.idx'), None, db.DB_BTREE, db.DB_CREATE)
     curs = database.cursor()
 
     for line in dates:
@@ -47,10 +50,10 @@ def main():
     #######################################################
     # (2) Create a B+ Tree Index on terms.txt
     # {term as key and ad id as data}
-    terms = open('terms.txt', 'r')
+    terms = open(input_directory.format('terms.txt'), 'r')
     database = db.DB()
     database.set_flags(db.DB_DUP)
-    database.open('te.idx', None, db.DB_BTREE, db.DB_CREATE)
+    database.open(output_directory.format('te.idx'), None, db.DB_BTREE, db.DB_CREATE)
     cur = database.cursor()
     
     for line in terms:
@@ -63,10 +66,10 @@ def main():
     ##########################################################
     # (1) Create Hash Index on ads.txt
     # {ad id as key and the full ad record as data}
-    ads = open('ads.txt', 'r')
+    ads = open(input_directory.format('ads.txt'), 'r')
     database = db.DB()
     database.set_flags(db.DB_DUP)
-    database.open('ad.idx', None, db.DB_HASH, db.DB_CREATE)
+    database.open(output_directory.format('ad.idx'), None, db.DB_HASH, db.DB_CREATE)
     cur = database.cursor()
 
     for line in ads:
