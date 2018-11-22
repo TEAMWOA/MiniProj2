@@ -43,7 +43,7 @@ def pdates_function(pdates_file, ad_data):
 # E.g. 8500:1304786670,camera-camcorder-lens,Calgary
 def prices_function(prices_file, ad_data):
 
-    price_string = "{}:{},{},{}\n"
+    price_string = "{:>12}:{},{},{}\n"
     formatted = price_string.format(ad_data["price"], ad_data["aid"], ad_data["cat"], ad_data["loc"])
     prices_file.write(formatted)
 
@@ -63,13 +63,13 @@ def process_ad(raw_ad):
 
     # Dictionary containing data about the ad
     ad_data = {
-        "aid":None,
-        "date":None,
-        "loc":None,
-        "cat":None,
-        "ti":None,
-        "desc":None,
-        "price":None
+        "aid"   : None,
+        "date"  : None,
+        "loc"   : None,
+        "cat"   : None,
+        "ti"    : None,
+        "desc"  : None,
+        "price" : None
     }
 
     # Regex pattern
