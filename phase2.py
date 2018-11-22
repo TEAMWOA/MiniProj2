@@ -29,7 +29,7 @@ def main():
         a=line.split(":")
         price=a[0] #key
         ID_CAT_LOC=line[1] #data
-        database.put(x.encode("utf-8"),ID_CAT_LOC)
+        database.put(price.encode("utf-8"),ID_CAT_LOC)
     curs.close()
     database.close()
     #######################################################
@@ -44,7 +44,7 @@ def main():
     for line in dates:
         dateisKey=line[:10] #key
         ID_CAT_LOC=line[11:] #data
-        database.put(x.encode("utf-8"),ID_CAT_LOC)
+        database.put(dateisKey.encode("utf-8"),ID_CAT_LOC)
     curs.close()
     database.close()
     #######################################################
