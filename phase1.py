@@ -10,8 +10,8 @@ def terms_function(terms_file, ad_data):
     keywords = []  # List containing all valid terms / keywords
 
     # Regular Expressions
-    sub_pattern1 = "&#.{0,5};"
-    sub_pattern2 = "&.{0,5};"
+    sub_pattern1 = "&#.{3};"
+    sub_pattern2 = "&.{3,4};"
     keyword_pattern = "[0-9a-zA-Z_-]{3,}"
 
     # Parse text
@@ -89,18 +89,21 @@ def process_ad(raw_ad):
 
 def main():
 
-    input_directory = "XMLFiles/{}"
-    output_directory = "TextFiles/{}"
+    input_directory = "XMLFiles/{}/{}"
+    output_directory = "TextFiles/{}/{}"
+
+    # 10, 1k, 20k, 100k
+    dataset = "100k"
 
     parsed_ads = 0  # Initialize count for number of parsed ads
     start_time = datetime.now()  # Start timer for recording runtime
 
     # Open files
-    xml_file = open(input_directory.format("1k.txt"), "r")  # XML File to read from
-    terms_file = open(output_directory.format("terms.txt"), "w")  # Terms file
-    pdates_file = open(output_directory.format("pdates.txt"), "w")  # Posting date file
-    prices_file = open(output_directory.format("prices.txt"), "w")  # Price file
-    ads_file = open(output_directory.format("ads.txt"), "w")  # Ads file
+    xml_file = open(input_directory.format(dataset, "{}.txt".format(dataset)), "r")  # XML File to read from
+    terms_file = open(output_directory.format(dataset, "terms.txt"), "w")  # Terms file
+    pdates_file = open(output_directory.format(dataset, "pdates.txt"), "w")  # Posting date file
+    prices_file = open(output_directory.format(dataset, "prices.txt"), "w")  # Price file
+    ads_file = open(output_directory.format(dataset, "ads.txt"), "w")  # Ads file
 
     # xml_file = open("XML/1k.txt", "r")  # XML File to read from
     # terms_file = open("Output/terms.txt", "w")  # Terms file

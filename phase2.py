@@ -13,16 +13,19 @@ from bsddb3 import db
 
 def main():
 
-    input_directory = "TextFiles/{}"
-    output_directory = "IndexFiles/{}"
+    input_directory = "TextFiles/{}/{}"
+    output_directory = "IndexFiles/{}/{}"
+
+    # 10, 1k, 20k, 100k
+    dataset = "100k"
 
     #######################################################
     # (4) Create a B+ Tree Index on prices.txt pdates.txt
     # {price as key and ad id, category and location as data}
-    prices = open(input_directory.format('prices.txt'), 'r')
+    prices = open(input_directory.format(dataset, 'prices.txt'), 'r')
     database = db.DB()
     database.set_flags(db.DB_DUP)
-    database.open(output_directory.format('pr.idx'), None, db.DB_BTREE, db.DB_CREATE)
+    database.open(output_directory.format(dataset, 'pr.idx'), None, db.DB_BTREE, db.DB_CREATE)
     curs = database.cursor()
 
     for line in prices:
@@ -35,10 +38,10 @@ def main():
     #######################################################
     # (3) Create a B+ Tree Index on pdates.txt
     # {date as key and ad id, category and location as data}
-    dates = open(input_directory.format('pdates.txt'), 'r')
+    dates = open(input_directory.format(dataset, 'pdates.txt'), 'r')
     database = db.DB()
     database.set_flags(db.DB_DUP)
-    database.open(output_directory.format('da.idx'), None, db.DB_BTREE, db.DB_CREATE)
+    database.open(output_directory.format(dataset, 'da.idx'), None, db.DB_BTREE, db.DB_CREATE)
     curs = database.cursor()
 
     for line in dates:
@@ -50,10 +53,10 @@ def main():
     #######################################################
     # (2) Create a B+ Tree Index on terms.txt
     # {term as key and ad id as data}
-    terms = open(input_directory.format('terms.txt'), 'r')
+    terms = open(input_directory.format(dataset, 'terms.txt'), 'r')
     database = db.DB()
     database.set_flags(db.DB_DUP)
-    database.open(output_directory.format('te.idx'), None, db.DB_BTREE, db.DB_CREATE)
+    database.open(output_directory.format(dataset, 'te.idx'), None, db.DB_BTREE, db.DB_CREATE)
     cur = database.cursor()
     
     for line in terms:
@@ -66,10 +69,10 @@ def main():
     ##########################################################
     # (1) Create Hash Index on ads.txt
     # {ad id as key and the full ad record as data}
-    ads = open(input_directory.format('ads.txt'), 'r')
+    ads = open(input_directory.format(dataset, 'ads.txt'), 'r')
     database = db.DB()
     database.set_flags(db.DB_DUP)
-    database.open(output_directory.format('ad.idx'), None, db.DB_HASH, db.DB_CREATE)
+    database.open(output_directory.format(dataset, 'ad.idx'), None, db.DB_HASH, db.DB_CREATE)
     cur = database.cursor()
 
     for line in ads:
