@@ -11,6 +11,8 @@
 from bsddb3 import db
 from Output import *
 
+# maybe problem with key?? ex., price = a[0] + "\n" <<- then change @ lines 31, 49, 68, 85
+
 
 def main():
     #######################################################
@@ -23,10 +25,12 @@ def main():
     curs = database.cursor()
 
     for line in prices:
+        line.rstrip()
+        line.replace("\\", "") #remove backslashes
         a=line.split(":")
         price=a[0] #key
         ID_CAT_LOC=line[1] #data
-        database.put(x.encode("utf-8"),ID_CAT_LOC)
+        database.put(price.encode("utf-8"),ID_CAT_LOC)
     curs.close()
     database.close()
     #######################################################
@@ -39,9 +43,12 @@ def main():
     curs = database.cursor()
 
     for line in dates:
-        dateisKey=line[:10] #key
-        ID_CAT_LOC=line[11:] #data
-        database.put(x.encode("utf-8"),ID_CAT_LOC)
+        line.rstrip()
+        line.replace("\\", "") #remove backslashes
+        a=line.split(":")
+        dateisKey=a[0] #key
+        ID_CAT_LOC=a[1] #data
+        database.put(dateisKey.encode("utf-8"),ID_CAT_LOC)
     curs.close()
     database.close()
     #######################################################
@@ -54,6 +61,8 @@ def main():
     cur = database.cursor()
     
     for line in terms:
+        line.rstrip() 
+        line.replace("\\", "")#remove backslashes
         a=line.split(":")
         term=a[0] #key 
         adID=a[1] #data
@@ -70,6 +79,8 @@ def main():
     cur = database.cursor()
 
     for line in ads:
+        line.rstrip()
+        line.replace("\\", "") #remove backslashes
         a = line.split(":")
         adID=a[0] #key
         adRecord=a[1] #data
