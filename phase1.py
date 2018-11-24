@@ -16,8 +16,11 @@ def terms_function(terms_file, ad_data):
 
     # Parse text
     for text in text_fields:
+
         text = re.sub(sub_pattern1, "", text)  # Removes numeric special characters from the text field (e.g. &#039;)
         text = re.sub(sub_pattern2, " ", text)  # Replaces non-numeric special characters with spaces (e.g. &amp;)
+        text = re.sub("quot;", " ", text)
+        
         valid_words = re.findall(keyword_pattern, text)  # Finds all valid words in the text field (length > 2, a-z, A-Z, 0-9, -, _)
         
         # Add valid words to list of keywords (lowercase)
@@ -89,60 +92,62 @@ def process_ad(raw_ad):
 
 def main():
 
-    input_directory = "XMLFiles/{}/{}"
-    output_directory = "TextFiles/{}/{}"
+    for dataset in ["10", "1k", "20k", "100k"]:
 
-    # 10, 1k, 20k, 100k
-    dataset = "100k"
+        input_directory = "XMLFiles/{}/{}"
+        output_directory = "TextFiles/{}/{}"
 
-    parsed_ads = 0  # Initialize count for number of parsed ads
-    start_time = datetime.now()  # Start timer for recording runtime
+        # 10, 1k, 20k, 100k
+        # dataset = "10"
 
-    # Open files
-    xml_file = open(input_directory.format(dataset, "{}.txt".format(dataset)), "r")  # XML File to read from
-    terms_file = open(output_directory.format(dataset, "terms.txt"), "w")  # Terms file
-    pdates_file = open(output_directory.format(dataset, "pdates.txt"), "w")  # Posting date file
-    prices_file = open(output_directory.format(dataset, "prices.txt"), "w")  # Price file
-    ads_file = open(output_directory.format(dataset, "ads.txt"), "w")  # Ads file
+        parsed_ads = 0  # Initialize count for number of parsed ads
+        start_time = datetime.now()  # Start timer for recording runtime
 
-    # xml_file = open("XML/1k.txt", "r")  # XML File to read from
-    # terms_file = open("Output/terms.txt", "w")  # Terms file
-    # pdates_file = open("Output/pdates.txt", "w")  # Posting date file
-    # prices_file = open("Output/prices.txt", "w")  # Price file
-    # ads_file = open("Output/ads.txt", "w")  # Ads file
+        # Open files
+        xml_file = open(input_directory.format(dataset, "{}.txt".format(dataset)), "r")  # XML File to read from
+        terms_file = open(output_directory.format(dataset, "terms.txt"), "w")  # Terms file
+        pdates_file = open(output_directory.format(dataset, "pdates.txt"), "w")  # Posting date file
+        prices_file = open(output_directory.format(dataset, "prices.txt"), "w")  # Price file
+        ads_file = open(output_directory.format(dataset, "ads.txt"), "w")  # Ads file
 
-    # Regex pattern
-    pattern = "<{}>(.*)</{}>"
-    ad_pattern = pattern.format("ad", "ad")
+        # xml_file = open("XML/1k.txt", "r")  # XML File to read from
+        # terms_file = open("Output/terms.txt", "w")  # Terms file
+        # pdates_file = open("Output/pdates.txt", "w")  # Posting date file
+        # prices_file = open("Output/prices.txt", "w")  # Price file
+        # ads_file = open("Output/ads.txt", "w")  # Ads file
 
-    # Iterate through each line in the XML file, parsing / processing it if it's an ad
-    for line in xml_file:
-        ad = re.search(ad_pattern, line)
-        if ad:
-            record = ad.group(0)  # Raw record string
-            ad_data = process_ad(record)  # Extract ad data from the record
-    
-            # Pass ad data to the functions for each file
-            terms_function(terms_file, ad_data)
-            pdates_function(pdates_file, ad_data)
-            prices_function(prices_file, ad_data)
-            ads_function(ads_file, ad_data)
+        # Regex pattern
+        pattern = "<{}>(.*)</{}>"
+        ad_pattern = pattern.format("ad", "ad")
 
-            parsed_ads += 1  # Increment number of ads parsed
+        # Iterate through each line in the XML file, parsing / processing it if it's an ad
+        for line in xml_file:
+            ad = re.search(ad_pattern, line)
+            if ad:
+                record = ad.group(0)  # Raw record string
+                ad_data = process_ad(record)  # Extract ad data from the record
+        
+                # Pass ad data to the functions for each file
+                terms_function(terms_file, ad_data)
+                pdates_function(pdates_file, ad_data)
+                prices_function(prices_file, ad_data)
+                ads_function(ads_file, ad_data)
 
-    # Close files
-    xml_file.close()
-    terms_file.close()
-    pdates_file.close()
-    prices_file.close()
-    ads_file.close()
+                parsed_ads += 1  # Increment number of ads parsed
 
-    # End timer
-    time_delta = datetime.now() - start_time
+        # Close files
+        xml_file.close()
+        terms_file.close()
+        pdates_file.close()
+        prices_file.close()
+        ads_file.close()
 
-    # Print program info
-    info_string = "Parsed {} ads in {} seconds."
-    print(info_string.format(parsed_ads, (int(time_delta.microseconds) / 1000000)))
+        # End timer
+        time_delta = datetime.now() - start_time
+
+        # Print program info
+        info_string = "Parsed {} ads in {} seconds."
+        print(info_string.format(parsed_ads, (int(time_delta.microseconds) / 1000000)))
 
 
 # Run program
