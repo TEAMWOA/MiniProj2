@@ -1,41 +1,49 @@
-def locationQuery(queryString):
-    # queryString is of the format location=[A-Za-z0-9]+
-    # TODO: format the string so you can conduct queries on it
-    queryString = queryString.lower()
-    location = queryString.split('=')[1]
-    location = bytes(location, encoding='utf-8')
+# Location Query 
+# iterate through the locations entered (list form)
+# 
 
-    # we can use either the date or price index
-    priceIndex = db.DB()
-    priceIndex.open("pr.idx")
-    priceCursor = priceIndex.cursor()
-    adIndex = db.DB()
-    adIndex.open("ad.idx")
-    adCursor = adIndex.cursor()
+def locationQuery(queryList):
+    # NOTE*** queryString is of the format location=[A-Za-z0-9]+
+    
+    #while there are location queries in the list left to search in the indexes for.....
+    while len(queryList) != 0:
+        for location in queryList: # loop through all locations in the list 
+        
+        
+            #queryString = queryString.lower()
+            #location = queryString.split('=')[1]
+            location = bytes(location, encoding='utf-8') #encoding for db needs to be 'utf-8'
 
-    adIds = []
-    iter = priceCursor.first()
+            # we can use either the date or price index [locations are in both]...
+            # 1. --Choose: Price Index
+            priceIndex = db.DB() #create index database
+            priceIndex.open("pr.idx")
+            priceCursor = priceIndex.cursor()
+            
+            # 2. --Cross reference with: Ad Index - grab the ad id (key)
+            adIndex = db.DB() # create ad database
+            adIndex.open("ad.idx")
+            adCursor = adIndex.cursor()
 
-    fullRecords = []
-    while iter:
-        # Iterate through all records and find the records where the location matches
-        returnedValue = priceCursor.get(location, db.DB_CURRENT)[1].decode('utf-8')
-        returnedLocation = returnedValue.split(',')[2]
-        print(location.decode('utf-8'))
+            adIds = []
+            runThrough = priceCursor.first() #returns the first item in the row   
 
-        if returnedLocation.lower() == location.decode('utf-8'):
-            adIds.append(returnedValue.split(',')[0])
+            fullRecords = []
+            
+            while runThrough:
+                # Iterate through all price records (price index db) and find the records/lines that have the locations
+                
+                returnedValue = priceCursor.get(location, db.DB_CURRENT)[1].decode('utf-8')
+                returnedLocation = returnedValue.split(',')[2]
+                print(location.decode('utf-8'))
 
-        iter = priceCursor.next()
+                if returnedLocation.lower() == location.decode('utf-8'):
+                    adIds.append(returnedValue.split(',')[0]) #
 
-    # Now that we have the adIds we can get their titles from ad.idx
-    for adId in adIds:
-        # we are guaranteed to find the ads in ad.idx
-        adId = bytes(adId, encoding='utf-8')
-        adCursor.set(adId)
-        record = adCursor.get(adId, db.DB_CURRENT)
+                runThrough = priceCursor.next()
 
-        # now that we have the record we can return the ID as well as the ad record
-        fullRecords.append((adId.decode('utf-8'), record[1].decode('utf-8')))
 
-    return fullRecords
+    if len(queryList) == 0:
+        adIds = []
+    
+    return adIds
