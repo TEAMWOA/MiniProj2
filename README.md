@@ -1,7 +1,7 @@
 # MiniProj2
 Indexing, Hashing and Sorting of Ads
 
-##- Script Version - 
+## Script Version 
 Automatically parses the XML file, creates, sorts and formats the .txt files and creates index files.
 
 Instructions to run:
