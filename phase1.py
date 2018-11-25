@@ -93,26 +93,17 @@ def process_ad(raw_ad):
 
 def main():
 
-    input_directory = "XMLFiles/{}/{}"
-    output_directory = "TextFiles/{}/{}"
-
-    dataset = str(sys.argv[1])
+    filename = sys.argv[1]
 
     parsed_ads = 0  # Initialize count for number of parsed ads
     start_time = datetime.now()  # Start timer for recording runtime
 
     # Open files
-    xml_file = open(input_directory.format(dataset, "{}.txt".format(dataset)), "r")  # XML File to read from
-    terms_file = open(output_directory.format(dataset, "terms.txt"), "w", newline="\n")  # Terms file
-    pdates_file = open(output_directory.format(dataset, "pdates.txt"), "w", newline="\n")  # Posting date file
-    prices_file = open(output_directory.format(dataset, "prices.txt"), "w", newline="\n")  # Price file
-    ads_file = open(output_directory.format(dataset, "ads.txt"), "w", newline="\n")  # Ads file
-
-    # xml_file = open("XML/1k.txt", "r")  # XML File to read from
-    # terms_file = open("Output/terms.txt", "w")  # Terms file
-    # pdates_file = open("Output/pdates.txt", "w")  # Posting date file
-    # prices_file = open("Output/prices.txt", "w")  # Price file
-    # ads_file = open("Output/ads.txt", "w")  # Ads file
+    xml_file = open(filename, "r")  # XML File to read from
+    terms_file = open("terms.txt", "w", newline="\n")  # Terms file
+    pdates_file = open("pdates.txt", "w", newline="\n")  # Posting date file
+    prices_file = open("prices.txt", "w", newline="\n")  # Price file
+    ads_file = open("ads.txt", "w", newline="\n")  # Ads file
 
     # Regex pattern
     pattern = "<{}>(.*)</{}>"
