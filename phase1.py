@@ -136,7 +136,7 @@ def main():
 
     # Print program info
     info_string = "Parsed {} ads in {} seconds."
-    print(info_string.format(parsed_ads, (int(time_delta.microseconds) / 1000000)))
+    print(info_string.format(parsed_ads, time_delta.total_seconds()))
 
 
 # Run program
