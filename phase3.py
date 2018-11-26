@@ -50,7 +50,7 @@ class QueryParser:
         }
 
         self.reserved_keywords = ["price", "cat", "location", "date", "output"]
-
+        self.matchIDs = []
 
     def close_databases(self):
 
@@ -141,12 +141,43 @@ class QueryParser:
         # "price[ ]*(<|>|<=|>=|=)[ ]*[0-9]+"
         operator = re.search("(<=|>=|=|<|>)", query).group(0)
         price = re.search("[0-9]+", query).group(0)
-
+        fprice = "{:>12}".format(price)
         if operator == ">=":
             self.query_data["price >="].append(price)
-
+            eprice = bytes(fprice, encoding = "utf-8")
+            result = self.priceCursor.set_range(eprice)
+            
+            while result:
+                ad = result[1].decode("utf-8").split(",")
+                adID = ad[0]
+                adPrice = int(result[0].decode("utf-8"))
+                if adPrice >= int(price):
+                
+                    self.matchIDs.append(adID)
+                    print(adID)
+                else:
+                    break
+                result = self.priceCursor.next()
+        print(len(self.matchIDs))        
         if operator == "<=":
             self.query_data["price <="].append(price)
+            eprice = bytes(fprice, encoding = "utf-8")
+            result = self.priceCursor.set_range(eprice)
+            
+            while result:
+                ad = result[1].decode("utf-8").split(",")
+                adID = ad[0]
+                adPrice = int(result[0].decode("utf-8"))
+                if adPrice <= int(price):
+                    self.matchIDs.append(adID)
+                    print(adID)
+                    
+                    #now check for duplicates first
+                    dup = self.priceCursor.next_dup()
+                    
+                else:
+                    break
+                result = self.priceCursor.prev_nodup()            
 
         if operator == ">":
             self.query_data["price >"].append(price)
