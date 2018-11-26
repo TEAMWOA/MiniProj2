@@ -126,19 +126,48 @@ class QueryParser:
         
         # Search for price queries
         result = re.search(self.regexes["priceQuery"], self.query)
-        while result:
+        if result:
             result = result.group(0)
-            self.price_query(result)
+            print(result)
+            self.price_query(result) 
+            list1 = set(self.priceMatches)
+            self.priceMatches.clear()
             self.query = self.query.replace(result, "", 1)
             result = re.search(self.regexes["priceQuery"], self.query)
-
+            
+            #if there is a second price range
+            if result:
+                result = result.group(0)
+                print(result)
+                self.price_query(result)
+            list2 = set(self.priceMatches)
+            priceMatchList = list1 & list2        
+            print(priceMatchList)
         # Search for date queries
         result = re.search(self.regexes["dateQuery"], self.query)
-        while result:
+        if result:
+            
             result = result.group(0)
+            print(result)
             self.date_query(result)
+            list1 = set(self.dateMatches)
+            #self.dateMatches.clear()
             self.query = self.query.replace(result, "", 1)
             result = re.search(self.regexes["dateQuery"], self.query)
+            
+            if result:
+                self.dateMatches.clear()
+                result = result.group(0)
+                print(result)
+                self.date_query(result)
+            list2 = set(self.dateMatches)
+            dateMatchList = list1 & list2 
+            
+            if dateMatchList:
+                priceDateMatchList = priceMatchList & dateMatchList
+            else:
+                priceDateMatchList = list1
+        
 
         # Search for location queries
         result = re.search(self.regexes["locationQuery"], self.query)
@@ -183,11 +212,11 @@ class QueryParser:
                 if adPrice >= int(price):
                 
                     self.priceMatches.append(adID)
-                    print(adID)
+                    #print(adID)
                 else:
                     break
                 result = self.priceCursor.next()
-        print(len(self.priceMatches))        
+              
         if operator == "<=":
             self.query_data["price <="].append(price)
             eprice = bytes(fprice, encoding = "utf-8")
@@ -199,7 +228,7 @@ class QueryParser:
                 adPrice = int(result[0].decode("utf-8"))
                 if adPrice <= int(price):
                     self.priceMatches.append(adID)
-                    print(adID)
+                    #print(adID)
                     
                     #now check for duplicates first
                     dup = self.priceCursor.next_dup()
@@ -207,7 +236,7 @@ class QueryParser:
                         dupAd = dup[1].decode("utf-8").split(",")
                         dupID = dupAd[0]
                         self.priceMatches.append(dupID)
-                        print(dupID)
+                        #print(dupID)
                         dup = self.priceCursor.next_dup()
                 else:
                     break
@@ -218,15 +247,13 @@ class QueryParser:
             eprice = bytes(fprice, encoding = "utf-8")
             result = self.priceCursor.set_range(eprice)
             result = self.priceCursor.next_nodup()
-            
-            
             while result:
                 ad = result[1].decode("utf-8").split(",")
                 adID = ad[0]
                 adPrice = int(result[0].decode("utf-8"))
                 if adPrice > int(price):
                     self.priceMatches.append(adID)
-                    print(adID)
+                    #print(adID)
                 else:
                     break
                 result = self.priceCursor.next()            
@@ -242,18 +269,18 @@ class QueryParser:
                 adPrice = int(result[0].decode("utf-8"))
                 if adPrice < int(price):
                     self.priceMatches.append(adID)
-                    print(adID)
+                    #print(adID)
                     
-                    dup = self.priceCursor.next_dup()
+                    dup = self.priceCursor.prev_dup()
                     while dup:
                         dupAd = dup[1].decode("utf-8").split(",")
                         dupID = dupAd[0]
                         self.priceMatches.append(dupID)
-                        print(dupID)
+                        #print(dupID)
                         dup = self.priceCursor.prev_dup()                    
                 else:
                     break
-                result = self.priceCursor.prev_dup()            
+                result = self.priceCursor.prev_nodup()            
 
         if operator == "=":
             self.query_data["price ="].append(price)
@@ -265,13 +292,13 @@ class QueryParser:
                 ad = result[1].decode("utf-8").split(",")
                 adID = ad[0]
                 self.priceMatches.append(adID)
-                print(adID)
+                #print(adID)
                 dup = self.priceCursor.next_dup()
                 while dup:
                     dupAd = dup[1].decode("utf-8").split(",")
                     dupID = dupAd[0]
                     self.priceMatches.append(dupID)
-                    print(dupID)
+                    #print(dupID)
                     dup = self.priceCursor.next_dup()
                     
 
@@ -300,7 +327,7 @@ class QueryParser:
                     adDate = dt.strptime(adDate,"%Y/%M/%d")
                     if adDate >= date :                    
                         self.dateMatches.append(adID)
-                        print(adID)
+                        #print(adID)
                     else:
                         break
                     result = self.dateCursor.next()
@@ -318,14 +345,14 @@ class QueryParser:
                     adDate = dt.strptime(adDate,"%Y/%M/%d")
                     if adDate <= date :
                         self.dateMatches.append(adID)
-                        print(adID)
+                        #print(adID)
                         
                         dup = self.dateCursor.next_dup()
                         while dup:
                             dupAd = dup[1].decode("utf-8").split(",")
                             dupID = dupAd[0]
                             self.dateMatches.append(dupID)
-                            print(dupID)
+                            #print(dupID)
                             dup = self.dateCursor.next_dup()
                     else:
                         break
@@ -342,7 +369,7 @@ class QueryParser:
                     adDate = dt.strptime(adDate,"%Y/%M/%d")
                     if adDate > date :                            
                         self.dateMatches.append(adID)
-                        print(adID)
+                        #print(adID)
                     else:
                         break
                     result = self.dateCursor.next()                
@@ -359,14 +386,14 @@ class QueryParser:
                 
                     if adDate < date :
                         self.dateMatches.append(adID)
-                        print(adID)
+                        #print(adID)
                         
                         dup = self.dateCursor.prev_dup()
                         while dup:
                             dupAd = dup[1].decode("utf-8").split(",")
                             dupID = dupAd[0]
                             self.dateMatches.append(dupID)
-                            print(dupID)
+                            #print(dupID)
                             dup = self.dateCursor.prev_dup()
                     else:
                         break
@@ -374,6 +401,19 @@ class QueryParser:
 
             if operator == "=":
                 self.query_data["date ="].append(date)
+                result = self.dateCursor.set_range(edate)
+                if result:
+                    ad = result[1].decode("utf-8").split(",")
+                    adID = ad[0]
+                    self.dateMatches.append(adID)
+                    #print(adID)
+                    dup = self.dateCursor.next_dup()
+                    while dup:
+                        dupAd = dup[1].decode("utf-8").split(",")
+                        dupID = dupAd[0]
+                        self.dateMatches.append(dupID)
+                        #print(dupID)
+                        dup = self.dateCursor.next_dup()                     
 
 #------------------------------------------------------------------------#
 
