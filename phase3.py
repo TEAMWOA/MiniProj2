@@ -1,9 +1,26 @@
 import os
 import re
+from bsddb3 import db
 
 
 class QueryParser:
-    def __init__(self, query):
+    def __init__(self):
+
+        self.priceDB = db.DB()
+        self.priceDB.open("IndexFiles/pr.idx", None, db.DB_BTREE, db.DB_CREATE)
+        self.priceCursor = self.priceDB.cursor()
+
+        self.adDB = db.DB()
+        self.adDB.open("IndexFiles/ad.idx", None, db.DB_HASH, db.DB_CREATE)
+        self.adCursor = self.adDB.cursor()
+
+        self.dateDB = db.DB()
+        self.dateDB.open("IndexFiles/da.idx", None, db.DB_BTREE, db.DB_CREATE)
+        self.dateCursor = self.dateDB.cursor()
+
+        self.termDB = db.DB()
+        self.termDB.open("IndexFiles/te.idx", None, db.DB_BTREE, db.DB_CREATE)
+        self.termCursor = self.termDB.cursor()
 
         self.query_data = {
             "price >"    : [],
@@ -34,8 +51,47 @@ class QueryParser:
 
         self.reserved_keywords = ["price", "cat", "location", "date", "output"]
 
+
+    def close_databases(self):
+
+        self.priceDB.close()
+        self.priceCursor.close()
+
+        self.adDB.close()
+        self.adCursor.close()
+        
+        self.dateDB.close()
+        self.dateCursor.close()
+        
+        self.termDB.close()
+        self.termCursor.close()
+
+    
+    def set_query(self, query):
+
         self.original_query = query
         self.query = query
+
+        self.query_data = {
+            "price >"    : [],
+            "price <"    : [],
+            "price >="   : [],
+            "price <="   : [],
+            "price ="    : [],
+
+            "date >"     : [],
+            "date <"     : [],
+            "date >="    : [],
+            "date <="    : [],
+            "date ="     : [],
+
+            "locations"  : [],
+            "categories" : [],
+            "terms"      : [],
+            "terms%"     : []
+        }
+
+        self.parse()
 
 
     def parse(self):
@@ -167,6 +223,7 @@ class Interface:
         # By default, the output of each query is the ad id and the title of all matching ads. 
         # The user should be able to change the output format to full record by typing "output=full" and back to id and title only using "output=brief"
         self.brief_output = True
+        self.parser = QueryParser()
 
 
     # Function to clear the screen - less clutter
@@ -197,6 +254,7 @@ class Interface:
 
             elif choice == "3":
                 self.clear_screen()
+                self.parser.close_databases()
                 quit()
             
             else:
@@ -211,11 +269,10 @@ class Interface:
         print("Also only works with gramatically correct queries (no error handling)")
         print("> Enter a command:\n")
 
-        command = input()
-        parser = QueryParser(command)
-        parser.parse()
+        query = input()
+        self.parser.set_query(query)
         self.clear_screen()
-        parser.print_query_conditions()
+        self.parser.print_query_conditions()
 
         input("> Press enter to return to main menu.\n")
 
