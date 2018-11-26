@@ -1,5 +1,6 @@
 import re
 from datetime import datetime
+import sys
 
 
 # Extracts terms from the ad's title and description and writes them to terms.txt
@@ -16,8 +17,11 @@ def terms_function(terms_file, ad_data):
 
     # Parse text
     for text in text_fields:
+
         text = re.sub(sub_pattern1, "", text)  # Removes numeric special characters from the text field (e.g. &#039;)
         text = re.sub(sub_pattern2, " ", text)  # Replaces non-numeric special characters with spaces (e.g. &amp;)
+        text = re.sub("quot;", " ", text)
+        
         valid_words = re.findall(keyword_pattern, text)  # Finds all valid words in the text field (length > 2, a-z, A-Z, 0-9, -, _)
         
         # Add valid words to list of keywords (lowercase)
@@ -89,27 +93,17 @@ def process_ad(raw_ad):
 
 def main():
 
-    input_directory = "XMLFiles/{}/{}"
-    output_directory = "TextFiles/{}/{}"
-
-    # 10, 1k, 20k, 100k
-    dataset = "100k"
+    filename = sys.argv[1]
 
     parsed_ads = 0  # Initialize count for number of parsed ads
     start_time = datetime.now()  # Start timer for recording runtime
 
     # Open files
-    xml_file = open(input_directory.format(dataset, "{}.txt".format(dataset)), "r")  # XML File to read from
-    terms_file = open(output_directory.format(dataset, "terms.txt"), "w")  # Terms file
-    pdates_file = open(output_directory.format(dataset, "pdates.txt"), "w")  # Posting date file
-    prices_file = open(output_directory.format(dataset, "prices.txt"), "w")  # Price file
-    ads_file = open(output_directory.format(dataset, "ads.txt"), "w")  # Ads file
-
-    # xml_file = open("XML/1k.txt", "r")  # XML File to read from
-    # terms_file = open("Output/terms.txt", "w")  # Terms file
-    # pdates_file = open("Output/pdates.txt", "w")  # Posting date file
-    # prices_file = open("Output/prices.txt", "w")  # Price file
-    # ads_file = open("Output/ads.txt", "w")  # Ads file
+    xml_file = open(filename, "r")  # XML File to read from
+    terms_file = open("terms.txt", "w", newline="\n")  # Terms file
+    pdates_file = open("pdates.txt", "w", newline="\n")  # Posting date file
+    prices_file = open("prices.txt", "w", newline="\n")  # Price file
+    ads_file = open("ads.txt", "w", newline="\n")  # Ads file
 
     # Regex pattern
     pattern = "<{}>(.*)</{}>"
