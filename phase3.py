@@ -50,20 +50,33 @@ class QueryParser:
             "termQuery"      : "([0-9a-zA-Z_-]+%|[0-9a-zA-Z_-]+)"
         }
 
+
+        
         self.reserved_keywords = ["price", "cat", "location", "date", "output"]
+        
+        #AD Ids Stored here for the Query Matches:      
+        #  
+        #[1] Price adID Matches
         self.priceMatches = []
         self.priceMatches2 = []
+        
+        #[2] Date adID Matches
         self.dateMatches = []
         self.dateMatches2 = []
         
-        #Location adID Matches
+        #[3] Location adID Matches
         self.LOC_adIDs = []
         
-        #Category adID Matches
+        #[4] Category adID Matches
         self.CAT_adIDS = [] 
         
-        #Term adID Matches
-        self.TERM_adIds = []
+        #[5] Term adID Matches
+        self.TERM_adIDs = []
+        
+        #[6] Term% adID Matches
+        self.TERM%_adIDs = []
+        
+#------------------------------------------------------------------------#
 
     def close_databases(self):
 
@@ -79,6 +92,7 @@ class QueryParser:
         self.termDB.close()
         self.termCursor.close()
 
+#------------------------------------------------------------------------#
     
     def set_query(self, query):
 
@@ -399,7 +413,8 @@ class QueryParser:
             CAT = bytes(category, encoding = 'utf-8')
             #self.CAT_adIds = []
             runThrough = self.priceCursor.first()
-    
+            
+            # [*] -- Search Index: Price Index
     
             while runThrough: #runThrough/search the price index 
                 # Iterate through all records and find the records where the category matches
@@ -418,13 +433,43 @@ class QueryParser:
         term = re.search("[0-9a-zA-Z_-]+", query).group(0).lower()
         if term not in self.reserved_keywords:
             inexact = re.search("%", query)
-            if inexact: #partial matching {case for term%}
+            
+            #{Case A} partial matching {case for 'term%'}
+            if inexact: 
                 inexact = True
                 self.query_data["terms%"].append(term)
-            
-            else: #no partial matching {Nocase for term%}
+                queryTerm = bytes(term, encoding='utf-8')
+                
+                while self.termCursor.get(queryTerm, db.DB_CURRENT)[0].decode('utf-8').startswith(term) #check if query matches the terms in the files; no need to strip % b/c startswith returns all
+                    returnedTERM = self.termCursor.get(queryTerm, db.DB_CURRENT)[1]
+                    returnedTERM = returnedTERM.decode('utf-8') 
+                    
+                    self.TERM%_adIDs.append(returnedTERM) # add AD ID values to the 'found' list     
+                    self.termCursor.next() # increment cursor     
+                             
+            # {Case B} no partial matching {Nocase for 'term%' aka 'term'}
+            else: 
                 inexact = False
                 self.query_data["terms"].append(term)
+                
+                queryTerm = bytes(term, encoding='utf-8')
+                
+                # [*] -- Search Index: Term Index
+                
+                # maybe include try/except for all queries ???????
+#                 try: #try and find the term 
+#                     self.termCursor.get(queryTerm, db.DB_CURRENT)
+#                 except: # term not found
+#                     print('That term was not found ..... ... .. ')
+#                     exit()
+                
+                while self.termCursor.get(queryTerm, db.DB_CURRENT)[0] == queryTerm:
+                    returnedTERM = self.termCursor.get(queryTerm, db.DB_CURRENT)[1]
+                    returnedTERM = returnedTERM.decode('utf-8')
+                    
+                    self.TERM_adIDs.append(returnedTERM) # add AD ID values to the 'found' list     
+                    self.termCursor.next() # increment cursor               
+                
 
 #------------------------------------------------------------------------#
 
@@ -437,6 +482,18 @@ class QueryParser:
         print()
         
     
+#------------------------------------------------------------------------#
+
+# might be an idea to implement the change the brief <-> full modes ??? - alexis
+
+    def change_mode(self, line):
+        line = line.lower()
+        if line.endswith("full"):
+            self.mode = "full"
+        elif line.endswith("brief"):
+            self.mode = "brief"
+        else:
+            print("Invalid mode")
 #------------------------------------------------------------------------#
 #------------------------------------------------------------------------#
 
