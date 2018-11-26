@@ -485,7 +485,6 @@ class QueryParser:
             returnedTERM = self.termCursor.get(db.DB_CURRENT)[0].decode("utf-8")
             returnedID = self.termCursor.get(db.DB_CURRENT)[1].decode("utf-8")
             
-            print(returnedTERM, returnedTERM.startswith(term))
                 
             while returnedTERM.startswith(term):
 
@@ -508,8 +507,6 @@ class QueryParser:
             current = self.termCursor.set(term.encode("utf-8"))
             returnedTERM = self.termCursor.get(db.DB_CURRENT)[0].decode("utf-8")
             returnedID = self.termCursor.get(db.DB_CURRENT)[1].decode("utf-8")
-
-            print(returnedTERM, returnedTERM.startswith(term))
 
             while returnedTERM == term:
 
