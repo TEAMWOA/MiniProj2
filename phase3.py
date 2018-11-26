@@ -174,19 +174,77 @@ class QueryParser:
                     
                     #now check for duplicates first
                     dup = self.priceCursor.next_dup()
-                    
+                    while dup:
+                        dupAd = dup[1].decode("utf-8").split(",")
+                        dupID = dupAd[0]
+                        self.matchIDs.append(dupID)
+                        print(dupID)
+                        dup = self.priceCursor.next_dup()
                 else:
                     break
                 result = self.priceCursor.prev_nodup()            
 
         if operator == ">":
             self.query_data["price >"].append(price)
+            eprice = bytes(fprice, encoding = "utf-8")
+            result = self.priceCursor.set_range(eprice)
+            result = self.priceCursor.next_nodup()
+            
+            
+            while result:
+                ad = result[1].decode("utf-8").split(",")
+                adID = ad[0]
+                adPrice = int(result[0].decode("utf-8"))
+                if adPrice > int(price):
+                    self.matchIDs.append(adID)
+                    print(adID)
+                else:
+                    break
+                result = self.priceCursor.next()            
 
         if operator == "<":
             self.query_data["price <"].append(price)
+            eprice = bytes(fprice, encoding = "utf-8")
+            result = self.priceCursor.set_range(eprice)
+            result = self.priceCursor.prev_nodup()
+            while result:
+                ad = result[1].decode("utf-8").split(",")
+                adID = ad[0]
+                adPrice = int(result[0].decode("utf-8"))
+                if adPrice < int(price):
+                    self.matchIDs.append(adID)
+                    print(adID)
+                    
+                    dup = self.priceCursor.next_dup()
+                    while dup:
+                        dupAd = dup[1].decode("utf-8").split(",")
+                        dupID = dupAd[0]
+                        self.matchIDs.append(dupID)
+                        print(dupID)
+                        dup = self.priceCursor.prev_dup()                    
+                else:
+                    break
+                result = self.priceCursor.prev_dup()            
 
         if operator == "=":
             self.query_data["price ="].append(price)
+            
+            eprice = bytes(fprice, encoding = "utf-8")
+            result = self.priceCursor.set(eprice)
+            
+            if result:
+                ad = result[1].decode("utf-8").split(",")
+                adID = ad[0]
+                self.matchIDs.append(adID)
+                print(adID)
+                dup = self.priceCursor.next_dup()
+                while dup:
+                    dupAd = dup[1].decode("utf-8").split(",")
+                    dupID = dupAd[0]
+                    self.matchIDs.append(dupID)
+                    print(dupID)
+                    dup = self.priceCursor.next_dup()
+                    
 
 
     def date_query(self, query):
