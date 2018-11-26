@@ -56,6 +56,14 @@ class QueryParser:
         self.dateMatches = []
         self.dateMatches2 = []
         
+        #Location adID Matches
+        self.LOC_adIDs = []
+        
+        #Category adID Matches
+        self.CAT_adIDS = [] 
+        
+        #Term adID Matches
+        self.TERM_adIds = []
 
     def close_databases(self):
 
@@ -98,6 +106,7 @@ class QueryParser:
 
         self.parse()
 
+#------------------------------------------------------------------------#
 
     def parse(self):
         
@@ -141,6 +150,7 @@ class QueryParser:
             self.query = self.query.replace(result, "", 1)
             result = re.search(self.regexes["termQuery"], self.query)
 
+#------------------------------------------------------------------------#
 
     def price_query(self, query):
         # "price[ ]*(<|>|<=|>=|=)[ ]*[0-9]+"
@@ -251,6 +261,7 @@ class QueryParser:
                     dup = self.priceCursor.next_dup()
                     
 
+#------------------------------------------------------------------------#
 
     def date_query(self, query):
         # "date[ ]*(<|>|<=|>=|=)[ ]*[0-9]{4}/[0-9]{2}/[0-9]{2}"
@@ -350,33 +361,72 @@ class QueryParser:
             if operator == "=":
                 self.query_data["date ="].append(date)
 
+#------------------------------------------------------------------------#
 
     def location_query(self, query):
         # "location[ ]*=[ ]*[0-9a-zA-Z_-]+"
         location = re.search("[0-9a-zA-Z_-]+\Z", query).group(0).lower()
         if location not in self.reserved_keywords:
-            self.query_data["locations"].append(location)
+            self.query_data["locations"].append(location) 
+        
+            LOC = bytes(location, encoding='utf-8') #encoding for db needs to be 'utf-8'
+            #LOC_adIDs =[] # add as a self.LOCadIDs ???
+            runThrough = self.priceCursor.first() #returns the first item in the ad row
+                    
+            # we can use either the date or price index [locations are in both]...
+            # [*] -- Search Index: Price Index
+        
+            while runThrough: #runThrough/search the price index 
+                # Iterate through all price records (price index db) and find the records/lines that have the locations  
+                returnedLOC = self.priceCursor.get(location, db.DB_CURRENT)[1].decode('utf-8')
+                returnedLocation = returnedLOC.split(',')[2]
+                #print(LOC.decode('utf-8'))
 
+                if returnedLocation.lower() == LOC.decode('utf-8'): # if match append the adID of the LOC (location term queried) to the adID list
+                    self.LOC_adIds.append(returnedLOC.split(',')[0]) #
+                    #print(returnedLOC.split(',')[0]))
+                runThrough = self.priceCursor.next() #increment the cursor
+            
+            
+
+#------------------------------------------------------------------------#
 
     def category_query(self, query):
         # "cat[ ]*=[ ]*[0-9a-zA-Z_-]+"
         category = re.search("[0-9a-zA-Z_-]+\Z", query).group(0).lower()
         if category not in self.reserved_keywords:
             self.query_data["categories"].append(category)
+            CAT = bytes(category, encoding = 'utf-8')
+            CAT_adIds = []
+            runThrough = self.priceCursor.first()
+    
+    
+            while runThrough: #runThrough/search the price index 
+                # Iterate through all records and find the records where the category matches
+                returnedCAT = self.priceCursor.get(CAT, db.DB_CURRENT)[1].decode('utf-8')
+                returnedCategory = returnedCAT.split(',')[1]
+                #print(CAT.decode('utf-8'))
 
+                if returnedCategory.lower() == CAT.decode('utf-8'):
+                    self.CAT_adIds.append(returnedCAT.split(',')[0])
 
+                runThrough = self.priceCursor.next() #increment the cursor
+
+#------------------------------------------------------------------------#
     def term_query(self, query):
         # "([0-9a-zA-Z_-]+%|[0-9a-zA-Z_-]+)"
         term = re.search("[0-9a-zA-Z_-]+", query).group(0).lower()
         if term not in self.reserved_keywords:
             inexact = re.search("%", query)
-            if inexact:
+            if inexact: #partial matching {case for term%}
                 inexact = True
                 self.query_data["terms%"].append(term)
-            else:
+            
+            else: #no partial matching {Nocase for term%}
                 inexact = False
                 self.query_data["terms"].append(term)
 
+#------------------------------------------------------------------------#
 
     def print_query_conditions(self):
         pattern = "{:<12}:   {}"
@@ -385,7 +435,9 @@ class QueryParser:
         for key in self.query_data.keys():
             print(pattern.format(key, self.query_data[key]))
         print()
-
+        
+    
+#------------------------------------------------------------------------#
 #------------------------------------------------------------------------#
 
 class Interface:
