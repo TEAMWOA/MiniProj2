@@ -370,7 +370,7 @@ class QueryParser:
             self.query_data["locations"].append(location) 
         
             LOC = bytes(location, encoding='utf-8') #encoding for db needs to be 'utf-8'
-            #LOC_adIDs =[] # add as a self.LOCadIDs ???
+            #self.LOC_adIDs =[] # add as a self.LOCadIDs ???
             runThrough = self.priceCursor.first() #returns the first item in the ad row
                     
             # we can use either the date or price index [locations are in both]...
@@ -397,7 +397,7 @@ class QueryParser:
         if category not in self.reserved_keywords:
             self.query_data["categories"].append(category)
             CAT = bytes(category, encoding = 'utf-8')
-            CAT_adIds = []
+            #self.CAT_adIds = []
             runThrough = self.priceCursor.first()
     
     
