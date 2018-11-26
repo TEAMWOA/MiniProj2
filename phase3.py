@@ -1,6 +1,7 @@
 import os
 import re
 from bsddb3 import db
+from datetime import datetime as dt
 
 
 class QueryParser:
@@ -50,7 +51,11 @@ class QueryParser:
         }
 
         self.reserved_keywords = ["price", "cat", "location", "date", "output"]
-        self.matchIDs = []
+        self.priceMatches = []
+        self.priceMatches2 = []
+        self.dateMatches = []
+        self.dateMatches2 = []
+        
 
     def close_databases(self):
 
@@ -153,12 +158,12 @@ class QueryParser:
                 adPrice = int(result[0].decode("utf-8"))
                 if adPrice >= int(price):
                 
-                    self.matchIDs.append(adID)
+                    self.priceMatches.append(adID)
                     print(adID)
                 else:
                     break
                 result = self.priceCursor.next()
-        print(len(self.matchIDs))        
+        print(len(self.priceMatches))        
         if operator == "<=":
             self.query_data["price <="].append(price)
             eprice = bytes(fprice, encoding = "utf-8")
@@ -169,7 +174,7 @@ class QueryParser:
                 adID = ad[0]
                 adPrice = int(result[0].decode("utf-8"))
                 if adPrice <= int(price):
-                    self.matchIDs.append(adID)
+                    self.priceMatches.append(adID)
                     print(adID)
                     
                     #now check for duplicates first
@@ -177,7 +182,7 @@ class QueryParser:
                     while dup:
                         dupAd = dup[1].decode("utf-8").split(",")
                         dupID = dupAd[0]
-                        self.matchIDs.append(dupID)
+                        self.priceMatches.append(dupID)
                         print(dupID)
                         dup = self.priceCursor.next_dup()
                 else:
@@ -196,7 +201,7 @@ class QueryParser:
                 adID = ad[0]
                 adPrice = int(result[0].decode("utf-8"))
                 if adPrice > int(price):
-                    self.matchIDs.append(adID)
+                    self.priceMatches.append(adID)
                     print(adID)
                 else:
                     break
@@ -212,14 +217,14 @@ class QueryParser:
                 adID = ad[0]
                 adPrice = int(result[0].decode("utf-8"))
                 if adPrice < int(price):
-                    self.matchIDs.append(adID)
+                    self.priceMatches.append(adID)
                     print(adID)
                     
                     dup = self.priceCursor.next_dup()
                     while dup:
                         dupAd = dup[1].decode("utf-8").split(",")
                         dupID = dupAd[0]
-                        self.matchIDs.append(dupID)
+                        self.priceMatches.append(dupID)
                         print(dupID)
                         dup = self.priceCursor.prev_dup()                    
                 else:
@@ -235,13 +240,13 @@ class QueryParser:
             if result:
                 ad = result[1].decode("utf-8").split(",")
                 adID = ad[0]
-                self.matchIDs.append(adID)
+                self.priceMatches.append(adID)
                 print(adID)
                 dup = self.priceCursor.next_dup()
                 while dup:
                     dupAd = dup[1].decode("utf-8").split(",")
                     dupID = dupAd[0]
-                    self.matchIDs.append(dupID)
+                    self.priceMatches.append(dupID)
                     print(dupID)
                     dup = self.priceCursor.next_dup()
                     
@@ -251,19 +256,96 @@ class QueryParser:
         # "date[ ]*(<|>|<=|>=|=)[ ]*[0-9]{4}/[0-9]{2}/[0-9]{2}"
         operator = re.search("(<=|>=|=|<|>)", query).group(0)
         date = re.search("[0-9]{4}/[0-9]{2}/[0-9]{2}", query).group(0)
-
+        
+        
+        
         if date not in self.reserved_keywords:
+            
+            #format the date first
+            fdate = "{:>1}".format(date)
+            date = dt.strptime(date,"%Y/%M/%d")
+            edate = bytes(fdate,encoding = "utf-8")
             if operator == ">=":
                 self.query_data["date >="].append(date)
-
+                result = self.dateCursor.set_range(edate)
+                while result:
+                    ad = result[1].decode("utf-8").split(",")
+                    adID = ad[0]
+                    adDate = result[0].decode("utf-8")
+                    adDate = dt.strptime(adDate,"%Y/%M/%d")
+                    if adDate >= date :                    
+                        self.dateMatches.append(adID)
+                        print(adID)
+                    else:
+                        break
+                    result = self.dateCursor.next()
+                    
+                    
+                
             if operator == "<=":
                 self.query_data["date <="].append(date)
+                result = self.dateCursor.set_range(edate)
+                
+                while result:
+                    ad = result[1].decode("utf-8").split(",")
+                    adID = ad[0]
+                    adDate = result[0].decode("utf-8")
+                    adDate = dt.strptime(adDate,"%Y/%M/%d")
+                    if adDate <= date :
+                        self.dateMatches.append(adID)
+                        print(adID)
+                        
+                        dup = self.dateCursor.next_dup()
+                        while dup:
+                            dupAd = dup[1].decode("utf-8").split(",")
+                            dupID = dupAd[0]
+                            self.dateMatches.append(dupID)
+                            print(dupID)
+                            dup = self.dateCursor.next_dup()
+                    else:
+                        break
+                    result = self.dateCursor.prev_nodup()                
 
             if operator == ">":
                 self.query_data["date >"].append(date)
+                result = self.dateCursor.set_range(edate)
+                result = self.dateCursor.next_nodup()
+                while result:
+                    ad = result[1].decode("utf-8").split(",")
+                    adID = ad[0]
+                    adDate = result[0].decode("utf-8")
+                    adDate = dt.strptime(adDate,"%Y/%M/%d")
+                    if adDate > date :                            
+                        self.dateMatches.append(adID)
+                        print(adID)
+                    else:
+                        break
+                    result = self.dateCursor.next()                
 
             if operator == "<":
                 self.query_data["date <"].append(date)
+                result = self.dateCursor.set_range(edate)
+                result = self.dateCursor.prev_nodup()
+                while result:
+                    ad = result[1].decode("utf-8").split(",")
+                    adID = ad[0]
+                    adDate = result[0].decode("utf-8")
+                    adDate = dt.strptime(adDate,"%Y/%M/%d")
+                
+                    if adDate < date :
+                        self.dateMatches.append(adID)
+                        print(adID)
+                        
+                        dup = self.dateCursor.prev_dup()
+                        while dup:
+                            dupAd = dup[1].decode("utf-8").split(",")
+                            dupID = dupAd[0]
+                            self.dateMatches.append(dupID)
+                            print(dupID)
+                            dup = self.dateCursor.prev_dup()
+                    else:
+                        break
+                    result = self.dateCursor.prev_nodup()                 
 
             if operator == "=":
                 self.query_data["date ="].append(date)
